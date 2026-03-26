@@ -2,7 +2,7 @@
 // Substitua qualquer 'require' por estes imports:
 import 'dotenv/config'; 
 import db from './src/config/database.js';
-import { encryptField, sanitizeRow } from './src/services/cryptoService.js';
+import { encrypt, decrypt } from './src/services/cryptoService.js';
 
 // O restante do código permanece igual...
 
