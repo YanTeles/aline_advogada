@@ -1,9 +1,13 @@
-import pg from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 import 'dotenv/config';
 
-const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false } // Necessário para Hostinger/Nuvem
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  // Remova ou comente totalmente o bloco SSL abaixo:
+  /* ssl: {
+    rejectUnauthorized: false
+  } */
 });
 
 export default pool;
