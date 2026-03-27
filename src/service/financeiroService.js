@@ -1,5 +1,5 @@
 import db from '../config/database.js';
-import { decrypt, encryptField, sanitizeRows } from './cryptoService.js';
+import { decrypt, encryptField, sanitizeRows } from './cryptoService.mjs';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

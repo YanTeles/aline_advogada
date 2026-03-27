@@ -1,6 +1,6 @@
 // Atenção: verifique se sua pasta chama 'service' ou 'services'
-import { encrypt } from '../service/cryptoService.js'; 
-import * as LancamentoModel from '../models/lancamentoModel.js';
+import { encrypt } from '../service/cryptoService.mjs'; 
+import * as LancamentoModel from '../models/lancamentoModel.mjs';
 
 export const postLancamento = async (req, res) => {
   try {

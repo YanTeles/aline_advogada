@@ -6,7 +6,7 @@ import pool from './src/config/database.js';
 import { postLancamento } from './src/controllers/lancamentoController.js';
 
 // --- IMPORTAÇÃO DE SERVIÇOS (Existentes) ---
-import * as cryptoService from './src/service/cryptoService.js';
+import * as cryptoService from './src/service/cryptoService.mjs';
 import prazoService from './src/service/prazoService.js';
 import storageService from './src/service/storageService.js';
 import whatsappService from './src/service/whatsappService.js';
