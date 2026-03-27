@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ERP Jurídico - Dra. Aline</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 400px; }
+        h2 { color: #2c3e50; text-align: center; }
+        label { display: block; margin: 10px 0 5px; color: #666; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 4px; margin-top: 20px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #219150; }
+        #mensagem { margin-top: 15px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Novo Lançamento ⚖️</h2>
+    <form id="financeiroForm">
+        <label>Escritório ID (Teste)</label>
+        <input type="number" id="escritorio_id" value="1" required>
+
+        <label>Tipo</label>
+        <select id="tipo">
+            <option value="RECEITA">Receita (Entrada)</option>
+            <option value="DESPESA">Despesa (Saída)</option>
+        </select>
+
+        <label>Valor (R$)</label>
+        <input type="number" step="0.01" id="valor" placeholder="0.00" required>
+
+        <label>Data de Vencimento</label>
+        <input type="date" id="data_vencimento" required>
+
+        <label>Descrição</label>
+        <textarea id="descricao" rows="3" placeholder="Ex: Honorários Processo X"></textarea>
+
+        <button type="submit">Salvar com Criptografia</button>
+    </form>
+    <div id="mensagem"></div>
+</div>
+
+<script>
+    document.getElementById('financeiroForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgDiv = document.getElementById('mensagem');
+        msgDiv.innerText = "Enviando...";
+
+        const dados = {
+            escritorio_id: document.getElementById('escritorio_id').value,
+            tipo: document.getElementById('tipo').value,
+            status: 'PENDENTE',
+            valor: document.getElementById('valor').value,
+            data_vencimento: document.getElementById('data_vencimento').value,
+            descricao: document.getElementById('descricao').value
+        };
+
+        try {
+            const response = await fetch('/api/lancamentos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                msgDiv.style.color = "green";
+                msgDiv.innerText = "✅ Sucesso! ID: " + result.id;
+                document.getElementById('financeiroForm').reset();
+            } else {
+                msgDiv.style.color = "red";
+                msgDiv.innerText = "❌ Erro: " + (result.error || result.erro);
+            }
+        } catch (error) {
+            msgDiv.style.color = "red";
+            msgDiv.innerText = "❌ Erro ao conectar com o servidor.";
+        }
+    });
+</script>
+
+</body>
+</html>

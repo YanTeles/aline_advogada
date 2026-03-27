@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
-  "type": "module",  "scripts": {
+  "type": "module",
+  "scripts": {
     "migrate": "psql $DATABASE_URL -f migrations/001_create_lancamentos_financeiros.sql",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
@@ -24,6 +25,7 @@
     "@aws-sdk/lib-storage": "^3.1015.0",
     "@aws-sdk/s3-request-presigner": "^3.1015.0",
     "axios": "^1.13.6",
+    "bcrypt": "^6.0.0",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",

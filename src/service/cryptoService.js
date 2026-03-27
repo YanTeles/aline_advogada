@@ -20,6 +20,14 @@
 //   campo_tag        → authentication tag (128 bits)
 // =============================================================================
 
+
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import 'dotenv/config';
+
+// ... resto do código
+
+const algorithm = 'aes-256-gcm';
 import crypto from 'crypto';
 
 // ---------------------------------------------------------------------------
@@ -325,4 +333,11 @@ export default {
     hashSenha,
     verificarSenha,
     gerarChaveMestra,
+};
+
+// Adicione isso para manter compatibilidade com o server.js
+export const encryptField = (field, value) => {
+    // Se vierem dois argumentos, criptografa o segundo (o valor)
+    const dataToEncrypt = value !== undefined ? value : field;
+    return encrypt(dataToEncrypt.toString());
 };
