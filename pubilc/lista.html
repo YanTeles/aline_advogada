@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Consulta de Lançamentos - ERP Jurídico</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 40px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #34495e; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; color: #444; }
+        tr:hover { background: #f9f9f9; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .pendente { background: #ffeaa7; color: #d63031; }
+        .valor { font-weight: bold; color: #27ae60; }
+        .btn-voltar { text-decoration: none; font-size: 14px; color: #3498db; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>
+        Lançamentos Financeiros ⚖️
+        <a href="index.html" class="btn-voltar">← Novo Lançamento</a>
+    </h2>
+    
+    <div id="loading">Carregando dados protegidos...</div>
+    
+    <table id="tabelaLancamentos" style="display: none;">
+        <thead>
+            <tr>
+                <th>Data Venc.</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Valor (R$)</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabela"></tbody>
+    </table>
+</div>
+
+<script>
+    async function carregarDados() {
+        const escritorioId = "550e8400-e29b-41d4-a716-446655440000"; // O UUID que usamos no teste
+        const tabela = document.getElementById('tabelaLancamentos');
+        const corpo = document.getElementById('corpoTabela');
+        const loading = document.getElementById('loading');
+
+        try {
+            // Chamando a nova rota GET que criamos
+            const response = await fetch(`http://localhost:3000/api/lancamentos/${escritorioId}`);
+            const dados = await response.json();
+
+            if (dados.length === 0) {
+                loading.innerText = "Nenhum lançamento encontrado para este escritório.";
+                return;
+            }
+
+            dados.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                // Formata a data para o padrão brasileiro
+                const dataFormatada = new Date(item.data_vencimento).toLocaleDateString('pt-BR');
+                
+                tr.innerHTML = `
+                    <td>${dataFormatada}</td>
+                    <td>${item.tipo}</td>
+                    <td>${item.descricao}</td>
+                    <td class="valor">R$ ${parseFloat(item.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td><span class="status-badge pendente">${item.status}</span></td>
+                `;
+                corpo.appendChild(tr);
+            });
+
+            loading.style.display = 'none';
+            tabela.style.display = 'table';
+
+        } catch (error) {
+            loading.innerText = "❌ Erro ao descriptografar ou carregar dados.";
+            console.error(error);
+        }
+    }
+
+    carregarDados();
+</script>
+
+</body>
+</html>
