@@ -34,16 +34,27 @@ pool.query('SELECT NOW()', (err, res) => {
 app.get('/api/dashboard/stats/:escritorio_id', async (req, res) => {
     try {
         const { escritorio_id } = req.params;
-        
-        // Simulação de dados para o visual (Em breve faremos as queries reais de soma)
+
+        const queryStats = `
+            SELECT
+                (SELECT COUNT(*) FROM lancamentos_financeiros WHERE escritorio_id = $1) AS processos_ativos,
+                COALESCE((SELECT SUM(valor) FROM lancamentos_financeiros WHERE escritorio_id = $1 AND tipo = 'RECEITA'), 0) AS receitas_mes,
+                COALESCE((SELECT SUM(valor) FROM lancamentos_financeiros WHERE escritorio_id = $1 AND tipo = 'DESPESA'), 0) AS despesas_mes,
+                (SELECT COUNT(*) FROM lancamentos_financeiros WHERE escritorio_id = $1 AND data_vencimento::date = CURRENT_DATE) AS prazos_hoje
+        `;
+
+        const resultado = await pool.query(queryStats, [escritorio_id]);
+        const stats = resultado.rows[0] || {};
+
         res.json({
-            processos_ativos: 256,
-            receitas_mes: "15250.00",
-            despesas_mes: "4100.00",
-            prazos_hoje: 5
+            processos_ativos: Number(stats.processos_ativos || 0),
+            receitas_mes: parseFloat(stats.receitas_mes || 0).toFixed(2),
+            despesas_mes: parseFloat(stats.despesas_mes || 0).toFixed(2),
+            prazos_hoje: Number(stats.prazos_hoje || 0)
         });
     } catch (error) {
-        res.status(500).json({ error: "Erro ao carregar estatísticas do dashboard." });
+        console.error("Erro ao buscar stats:", error);
+        res.status(500).json({ error: "Erro no servidor" });
     }
 });
 
