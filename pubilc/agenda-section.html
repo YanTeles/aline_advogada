@@ -1,0 +1,48 @@
+<section id="view-agenda" class="view">
+    <div class="stats-grid" style="margin-bottom: 24px;">
+        <div class="stat-card"><span>Prazos Pendentes</span><h3 id="agenda-stats-pendentes">0</h3></div>
+        <div class="stat-card"><span>Próximos 7 Dias</span><h3 id="agenda-stats-proximos">0</h3></div>
+        <div class="stat-card"><span>Vencidos Hoje</span><h3 id="agenda-stats-vencidos">0</h3></div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; height: 600px;">
+        <!-- Calendário -->
+        <div class="card" style="height: 100%;">
+            <h3 style="color: var(--gold); margin-bottom: 16px;">Calendário de Prazos</h3>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- Form + Lista -->
+        <div style="display: flex; flex-direction: column; gap: 24px; height: 100%;">
+            <!-- Form Adicionar Prazo -->
+            <div class="card" style="flex: 1;">
+                <h3 style="color: var(--gold);">+ Novo Prazo</h3>
+                <form id="form-prazo" style="display: grid; gap: 12px;">
+                    <div class="form-group">
+                        <label>Data Publicação</label>
+                        <input type="date" id="prazo-data-pub" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Dias Úteis</label>
+                        <input type="number" id="prazo-dias-uteis" value="8" min="1" max="30" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea id="prazo-descricao" placeholder="Ex: Recurso Ordinário - Proc 12345" required></textarea>
+                    </div>
+                    <button type="submit"><i class="fas fa-plus"></i> ADICIONAR PRAZO</button>
+                </form>
+            </div>
+
+            <!-- Lista Próximos Prazos -->
+            <div class="card" style="flex: 1; overflow: auto;">
+                <h3 style="color: var(--gold);">Prazos Próximos <span id="prazos-count" style="font-size: 0.8em; color: #aaa;">(carregando...)</span></h3>
+                <table id="table-prazos">
+                    <thead><tr><th>Data Limite</th><th>Descrição</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+

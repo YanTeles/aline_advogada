@@ -27,6 +27,10 @@ pool.query('SELECT NOW()', (err, res) => {
 
 // --- 5. ROTAS ATIVAS ---
 
+// IMPORT NOVO CONTROLLER AGENDA
+import { getPrazos, getPrazosStats, postPrazo } from './src/controllers/agendaController.js';
+
+
 /**
  * @route   GET /api/dashboard/stats/:escritorio_id
  * @desc    Busca números resumidos para os Cards do Dashboard
@@ -65,7 +69,12 @@ app.post('/api/lancamentos', postLancamento);
 app.get('/api/lancamentos/:escritorio_id', getLancamentos);
 
 // Rota de Status do Sistema
+app.get('/api/prazos/stats/:escritorio_id', getPrazosStats);
+app.get('/api/prazos/:escritorio_id', getPrazos);
+app.post('/api/prazos', postPrazo);
+
 app.get('/api/status', (req, res) => {
+
     res.json({ 
         mensagem: "Sistema da Dra. Aline está online! ⚖️",
         status: "OK"

@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles_new.css">
+    <!-- FullCalendar CDN -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
 </head>
 <body>
 
@@ -97,6 +100,54 @@
                 </div>
             </section>
 
+            <section id="view-agenda" class="view">
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card"><span>Prazos Pendentes</span><h3 id="agenda-stats-pendentes">0</h3></div>
+                    <div class="stat-card"><span>Próximos 7 Dias</span><h3 id="agenda-stats-proximos">0</h3></div>
+                    <div class="stat-card"><span>Vencidos Hoje</span><h3 id="agenda-stats-vencidos">0</h3></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; height: 600px;">
+                    <!-- Calendário -->
+                    <div class="card" style="height: 100%;">
+                        <h3 style="color: var(--gold); margin-bottom: 16px;">Calendário de Prazos</h3>
+                        <div id="calendar"></div>
+                    </div>
+
+                    <!-- Form + Lista -->
+                    <div style="display: flex; flex-direction: column; gap: 24px; height: 100%;">
+                        <!-- Form Adicionar Prazo -->
+                        <div class="card" style="flex: 1;">
+                            <h3 style="color: var(--gold);">+ Novo Prazo</h3>
+                            <form id="form-prazo" style="display: grid; gap: 12px;">
+                                <div class="form-group">
+                                    <label>Data Publicação</label>
+                                    <input type="date" id="prazo-data-pub" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dias Úteis</label>
+                                    <input type="number" id="prazo-dias-uteis" value="8" min="1" max="30" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Descrição</label>
+                                    <textarea id="prazo-descricao" placeholder="Ex: Recurso Ordinário - Proc 12345" required></textarea>
+                                </div>
+                                <button type="submit"><i class="fas fa-plus"></i> ADICIONAR PRAZO</button>
+                            </form>
+                        </div>
+
+                        <!-- Lista Próximos Prazos -->
+                        <div class="card" style="flex: 1; overflow: auto;">
+                            <h3 style="color: var(--gold);">Prazos Próximos <span id="prazos-count" style="font-size: 0.8em; color: #aaa;">(carregando...)</span></h3>
+                            <table id="table-prazos">
+                                <thead><tr><th>Data Limite</th><th>Descrição</th><th>Status</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="view-extrato" class="view">
                 <div class="card">
                     <table id="table-full">
@@ -117,36 +168,40 @@
             document.getElementById(`view-${viewId}`).classList.add('active');
             document.getElementById('view-title').innerText = title;
             if (clickedMenu) clickedMenu.classList.add('active');
-            if (viewId !== 'financeiro') loadData();
+        if (viewId === 'agenda') {
+            loadAgenda();
+        } else if (viewId !== 'financeiro') {
+            loadData();
+        }
         }
 
+        // toggleTheme desabilitado - apenas dark
         function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('theme-icon');
-            const isDark = body.dataset.theme === 'dark';
-            const newTheme = isDark ? 'light' : 'dark';
-            body.dataset.theme = newTheme;
-            localStorage.setItem('lexguard-theme', newTheme);
-            icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            // Manter dark theme
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            document.body.dataset.theme = localStorage.getItem('lexguard-theme') || 'dark';
+            // Forçar tema dark apenas
+            document.body.dataset.theme = 'dark';
+            localStorage.setItem('lexguard-theme', 'dark');
             const themeIcon = document.getElementById('theme-icon');
-            themeIcon.className = document.body.dataset.theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            themeIcon.className = 'fas fa-sun';
             loadData();
         });
 
         async function loadData() {
             try {
-                // BUSCAR ESTATÍSTICAS REAIS
+                // BUSCAR ESTATÍSTICAS REAIS - Atualizar prazos_hoje com API específica
                 const resStats = await fetch(`/api/dashboard/stats/${ESCRITORIO_ID}`);
                 const stats = await resStats.json();
+
+                const resPrazosStats = await fetch(`/api/prazos/stats/${ESCRITORIO_ID}`);
+                const statsPrazos = await resPrazosStats.json();
 
                 document.getElementById('stat-processos').innerText = stats.processos_ativos;
                 document.getElementById('stat-receitas').innerText = `R$ ${parseFloat(stats.receitas_mes || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
                 document.getElementById('stat-despesas').innerText = `R$ ${parseFloat(stats.despesas_mes || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-                document.getElementById('stat-prazos').innerText = stats.prazos_hoje;
+                document.getElementById('stat-prazos').innerText = statsPrazos.prazos_hoje || 0;
 
                 const res = await fetch(`/api/lancamentos/${ESCRITORIO_ID}`);
                 const dados = await res.json();
@@ -168,6 +223,101 @@
                 render('#table-full');
             } catch (e) { console.error("Falha ao sincronizar dados", e); }
         }
+
+        let calendar;
+
+        async function loadAgenda() {
+            try {
+                const res = await fetch(`/api/prazos/${ESCRITORIO_ID}`);
+                const prazos = await res.json();
+
+                // Stats da agenda
+                const pendentes = prazos.filter(p => p.status === 'PENDENTE').length;
+                const proximos = prazos.length;
+                const hoje = new Date().toISOString().slice(0, 10);
+                const vencidosHoje = prazos.filter(p => p.data_limite === hoje && p.status === 'PENDENTE').length;
+
+                document.getElementById('agenda-stats-pendentes').innerText = pendentes;
+                document.getElementById('agenda-stats-proximos').innerText = proximos;
+                document.getElementById('agenda-stats-vencidos').innerText = vencidosHoje;
+                document.getElementById('prazos-count').innerText = `(${proximos})`;
+
+                // Render lista
+                const tbody = document.querySelector('#table-prazos tbody');
+                tbody.innerHTML = '';
+                prazos.forEach(p => {
+                    const statusClass = p.status === 'PENDENTE' ? 'badge' : p.status === 'CONCLUIDO' ? 'bg-green-500 text-white px-2 py-1 rounded text-xs' : 'bg-red-500 text-white px-2 py-1 rounded text-xs';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${new Date(p.data_limite).toLocaleDateString('pt-BR')}</strong></td>
+                            <td>${p.descricao}</td>
+                            <td><span class="${statusClass}">${p.status}</span></td>
+                        </tr>`;
+                });
+
+                // Render calendar
+                const events = prazos.map(p => ({
+                    title: p.descricao.slice(0, 30) + '...',
+                    start: p.data_limite,
+                    backgroundColor: p.status === 'PENDENTE' ? '#d4af37' : p.status === 'CONCLUIDO' ? '#10b981' : '#ef4444',
+                    borderColor: p.status === 'PENDENTE' ? '#d4af37' : p.status === 'CONCLUIDO' ? '#10b981' : '#ef4444'
+                }));
+
+                const calendarEl = document.getElementById('calendar');
+                if (calendar) calendar.destroy();
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: { left: 'prev,next', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                    locale: 'ptBr',
+                    height: '100%',
+                    events: events,
+                    eventClick: function(info) {
+                        alert(`Prazo: ${info.event.title}\nData: ${info.event.start.toLocaleDateString('pt-BR')}`);
+                    }
+                });
+                calendar.render();
+
+            } catch (e) {
+                console.error('Erro carregando agenda:', e);
+                document.getElementById('prazos-count').innerText = '(Erro)';
+            }
+        }
+
+        // Form submit
+        document.addEventListener('submit', async (e) => {
+            if (e.target.id === 'form-prazo') {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Adicionando...';
+                btn.disabled = true;
+
+                const payload = {
+                    data_publicacao: document.getElementById('prazo-data-pub').value,
+                    dias_uteis: document.getElementById('prazo-dias-uteis').value,
+                    descricao: document.getElementById('prazo-descricao').value
+                };
+
+                try {
+                    const res = await fetch('/api/prazos', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        e.target.reset();
+                        loadAgenda(); // Reload
+                        alert('✅ Prazo adicionado com sucesso!');
+                    } else {
+                        alert('Erro ao adicionar prazo');
+                    }
+                } catch (err) {
+                    alert('Erro de conexão');
+                }
+
+                btn.innerHTML = '<i class="fas fa-plus"></i> ADICIONAR PRAZO';
+                btn.disabled = false;
+            }
+        });
 
         document.getElementById('form-cadastro').addEventListener('submit', async (e) => {
             e.preventDefault();
