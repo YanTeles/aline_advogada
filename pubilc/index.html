@@ -163,16 +163,34 @@
         const ESCRITORIO_ID = "550e8400-e29b-41d4-a716-446655440000";
 
         function showView(viewId, title, clickedMenu) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            document.getElementById(`view-${viewId}`).classList.add('active');
-            document.getElementById('view-title').innerText = title;
-            if (clickedMenu) clickedMenu.classList.add('active');
-        if (viewId === 'agenda') {
-            loadAgenda();
-        } else if (viewId !== 'financeiro') {
-            loadData();
-        }
+            try {
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                const viewElement = document.getElementById(`view-${viewId}`);
+                if (viewElement) {
+                    viewElement.classList.add('active');
+                } else {
+                    console.warn(`Elemento view-${viewId} não encontrado`);
+                    return;
+                }
+                document.getElementById('view-title').innerText = title;
+                if (clickedMenu) clickedMenu.classList.add('active');
+                
+                // Carregar conteúdo ASYNC após ativação da view
+                if (viewId === 'agenda') {
+                    setTimeout(() => loadAgenda(), 0);
+                } else if (viewId !== 'financeiro') {
+                    setTimeout(() => loadData(), 0);
+                }
+            } catch (error) {
+                console.error('Erro ao trocar view:', error);
+                // Fallback: ainda tenta ativar view mesmo com erro
+                const fallbackView = document.getElementById(`view-${viewId}`);
+                if (fallbackView) {
+                    fallbackView.classList.add('active');
+                    document.getElementById('view-title').innerText = title;
+                }
+            }
         }
 
         // toggleTheme desabilitado - apenas dark
@@ -319,32 +337,7 @@
             }
         });
 
-        document.getElementById('form-cadastro').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const msg = document.getElementById('msg');
-            msg.innerHTML = "<i class='fas fa-sync fa-spin'></i> Processando Camada de Segurança...";
-
-            const payload = {
-                escritorio_id: document.getElementById('esc_id').value,
-                tipo: document.getElementById('tipo').value,
-                status: 'CONCLUÍDO',
-                valor: document.getElementById('valor').value,
-                data_vencimento: document.getElementById('data').value,
-                descricao: document.getElementById('desc').value
-            };
-
-            const res = await fetch('/api/lancamentos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if(res.ok) {
-                msg.innerHTML = "<b style='color:var(--gold)'>✓ REGISTRO CRIPTOGRAFADO COM SUCESSO!</b>";
-                e.target.reset();
-                setTimeout(() => showView('dashboard', 'Dashboard', document.getElementById('menu-dashboard')), 1200);
-            }
-        });
+        // Removido form-cadastro inexistente - evita erro JS
     </script>
 </body>
 </html>

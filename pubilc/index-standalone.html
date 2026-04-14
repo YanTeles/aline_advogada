@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexGuard - Teste Standalone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* CSS inline para teste standalone */
+        :root {
+            --bg: #070707; --panel: #111111; --text: #e5e5e5; --gold: #d4af37; --border: #2a2a2a;
+        }
+        body { font-family: Inter, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        .sidebar { position: fixed; left: 0; top: 0; width: 250px; height: 100vh; background: #1a1a1a; padding: 20px; }
+        .menu-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 8px; }
+        .menu-item.active { background: rgba(212,175,55,0.2); }
+        .main-content { margin-left: 250px; padding: 20px; }
+        .view { display: none; }
+        .view.active { display: block; }
+        #view-title { color: var(--gold); }
+        .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--panel); padding: 20px; border-radius: 12px; text-align: center; border-left: 4px solid var(--gold); }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div style="font-size:1.5em;color:var(--gold);margin-bottom:30px;">LEXGUARD</div>
+        <div class="menu-item active" onclick="showView('dashboard')">🏠 Dashboard</div>
+        <div class="menu-item" onclick="showView('agenda')">📅 Agenda</div>
+    </nav>
+    
+    <main class="main-content">
+        <h1 id="view-title">Dashboard</h1>
+        <div class="view-container">
+            <div id="view-dashboard" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card"><div>Processos</div><h2>42</h2></div>
+                    <div class="stat-card"><div>Receitas</div><h2>R$ 28.400</h2></div>
+                    <div class="stat-card"><div>Despesas</div><h2>R$ 7.200</h2></div>
+                    <div class="stat-card"><div>Prazos Hoje</div><h2>3</h2></div>
+                </div>
+            </div>
+            <div id="view-agenda" class="view">
+                <h2>Agenda Jurídica ✅</h2>
+                <p>Teste funcionando perfeitamente!</p>
+                <div class="stats-grid">
+                    <div class="stat-card"><div>Pendentes</div><h2>5</h2></div>
+                    <div class="stat-card"><div>Próximos 7d</div><h2>12</h2></div>
+                    <div class="stat-card"><div>Vencidos</div><h2>0</h2></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showView(viewId) {
+            console.log('showView chamada para:', viewId);
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            const viewEl = document.getElementById('view-' + viewId);
+            if (viewEl) {
+                viewEl.classList.add('active');
+                document.querySelector('h1').textContent = viewId.charAt(0).toUpperCase() + viewId.slice(1);
+            }
+            event.target.classList.add('active');
+            console.log('View ativa:', viewEl ? 'SIM' : 'NÃO');
+        }
+    </script>
+</body>
+</html>
